@@ -1,5 +1,7 @@
 package com.adriangrabowski.android.oudegreecalculator;
 
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
 import java.io.Serializable;
@@ -8,12 +10,24 @@ import java.io.Serializable;
  * Created by Adrian on 14/08/2017.
  */
 
+@Entity
 public class OUModule implements Serializable, Comparable<OUModule> {
+
+
+    //public int uuid;
+
+    @PrimaryKey
+    @NonNull
     private String moduleCode;  // for example M250
+
     private String moduleName;
     private int numberOfCredits; // usually 30 or 60
     private int level; // 2 or 3
     private int gradeOfPass;  // 1 - Distinction, 2 - grade 2 pass, etc..
+
+    public OUModule() {
+
+    }
 
     public OUModule(String code, String name, int credits, int lvl, int grade) {
         moduleCode = code;
@@ -58,11 +72,43 @@ public class OUModule implements Serializable, Comparable<OUModule> {
         return getGradeOfPass() - ouModule.getGradeOfPass();
     }
 
+    public String getModuleName() {
+        return moduleName;
+    }
+
+    public void setModuleName(String moduleName) {
+        this.moduleName = moduleName;
+    }
+
     public int getNumberOfCredits() {
         return numberOfCredits;
     }
 
+    public void setNumberOfCredits(int numberOfCredits) {
+        this.numberOfCredits = numberOfCredits;
+    }
+
     public int getGradeOfPass() {
         return gradeOfPass;
+    }
+
+    public void setGradeOfPass(int gradeOfPass) {
+        this.gradeOfPass = gradeOfPass;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
+    public String getModuleCode() {
+        return moduleCode;
+    }
+
+    public void setModuleCode(String moduleCode) {
+        this.moduleCode = moduleCode;
     }
 }

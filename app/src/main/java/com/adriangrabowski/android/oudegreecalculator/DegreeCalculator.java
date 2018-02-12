@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -23,10 +24,36 @@ public class DegreeCalculator implements Serializable {
         level3modules = new HashSet<>();
     }
 
+    public DegreeCalculator(List<OUModule> ouModuleList) {
+        this();
+
+        for (OUModule module : ouModuleList) {
+
+            if (module.getLevel() == 2) {
+                level2modules.add(module);
+            } else if (module.getLevel() == 3) {
+                level3modules.add(module);
+            }
+
+        }
+    }
+
+
+
+
     public void reset() {
         level2modules.clear();
         level3modules.clear();
     }
+
+    public void addModule(OUModule module) {
+        if (module.getLevel() == 2) {
+            level2modules.add(module);
+        } else if (module.getLevel() == 3) {
+            level3modules.add(module);
+        }
+    }
+
 
     public void addModule(int level, String code, String name, int credits, int grade) {
         if (level == 2) {
@@ -193,12 +220,28 @@ public class DegreeCalculator implements Serializable {
 
     }
 
+    public void removeModule(OUModule module) {
+
+        level2modules.remove(module);
+        level3modules.remove(module);
+    }
+
     public Set<OUModule> getLevel2modules() {
         return level2modules;
     }
 
     public Set<OUModule> getLevel3modules() {
         return level3modules;
+    }
+
+    public List<OUModule> getAllModules() {
+
+        Set<OUModule> moduleSet = new HashSet<>();
+
+        moduleSet.addAll(getLevel2modules());
+        moduleSet.addAll(getLevel3modules());
+
+        return new ArrayList<>(moduleSet);
     }
 
 
