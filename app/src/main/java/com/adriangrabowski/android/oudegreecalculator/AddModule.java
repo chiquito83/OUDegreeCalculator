@@ -15,7 +15,7 @@ public class AddModule extends AppCompatActivity {
     int level;
     int credits;
     int grade;
-    String name;
+    String code;
     Context context;
 
 
@@ -39,16 +39,16 @@ public class AddModule extends AppCompatActivity {
         EditText nameField = (EditText) findViewById(R.id.name_text_view);
 
 
-        name = nameField.getText().toString();
+        code = nameField.getText().toString();
         boolean isNewModuleAdded = false;
 
 
-        if (name.length() > 0) {
+        if (code.length() > 0) {
 
 
             if (level == 2 && dg.getTotalCreditsLevel2() + credits <= 120) {
 
-                dg.addModule(level, "", name, credits, grade);
+                dg.addModule(level, code, "", credits, grade);
                 isNewModuleAdded = true;
 
             }
@@ -56,7 +56,7 @@ public class AddModule extends AppCompatActivity {
 
             if (level == 3 && dg.getTotalCreditsLevel3() + credits <= 120) {
 
-                dg.addModule(level, "", name, credits, grade);
+                dg.addModule(level, code, "", credits, grade);
                 isNewModuleAdded = true;
 
             }

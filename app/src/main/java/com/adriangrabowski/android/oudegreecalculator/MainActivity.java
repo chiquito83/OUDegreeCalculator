@@ -8,22 +8,26 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import com.getbase.floatingactionbutton.FloatingActionButton;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    DegreeCalculator dg;
-    OUModuleDatabase ouModuleDatabase;
+    private DegreeCalculator dg;
+    private OUModuleDatabase ouModuleDatabase;
 
-    Context context;
+    private ListView moduleListView;
+    private ModuleAdapter moduleAdapter;
+
+    private ArrayList<OUModule> moduleArrayList;
+
+
+    private Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +36,35 @@ public class MainActivity extends AppCompatActivity {
 
         ouModuleDatabase = OUModuleDatabase.getInstance(this);
 
+        moduleListView = (ListView) findViewById(R.id.lv_listofallmodules);
+
         context = this;
+
+
+        // buttons
+
+        FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab_add_2);
+        FloatingActionButton fab3 = (FloatingActionButton) findViewById(R.id.fab_add_3);
+
+        fab2.setTitle("LALA");
+
+
+        fab2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addLevel2Module(view);
+            }
+        });
+
+        fab3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addLevel3Module(view);
+            }
+        });
+
+
+        //
 
 
         DegreeCalculator d = (DegreeCalculator) getIntent().getSerializableExtra("dg");
@@ -48,9 +80,27 @@ public class MainActivity extends AppCompatActivity {
             dg = d;
         }
 
+        refreshList();
 
         refreshAll();
 
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+
+    }
+
+    private void refreshList() {
+        moduleArrayList = (ArrayList<OUModule>) dg.getAllModules();
+        moduleAdapter = new ModuleAdapter(context, moduleArrayList);
+
+        moduleListView.setAdapter(moduleAdapter);
+
+        moduleAdapter.notifyDataSetChanged();
 
     }
 
@@ -60,6 +110,13 @@ public class MainActivity extends AppCompatActivity {
         displayResult();
         updateCreditCounter();
 
+    }
+
+    void removeModule(OUModule moduleToRemove) {
+        dg.removeModule(moduleToRemove);
+        refreshList();
+        refreshAll();
+        moduleAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -72,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        //outState.putSerializable("DG", dg);
+
     }
 
     @Override
@@ -87,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
     public void clearAll(View view) {
         dg.getLevel2modules().clear();
         dg.getLevel3modules().clear();
-        recreate();
+        refreshAll();
     }
 
     private void updateCreditCounter() {
@@ -127,6 +184,11 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void removeModuleOnClickHandler(View view) {
+
+
+    }
+
     private void displayListOfModules2() {
 
 
@@ -163,6 +225,7 @@ public class MainActivity extends AppCompatActivity {
 
                     displayResult();
                     updateCreditCounter();
+                    refreshList();
                 }
             });
 
@@ -211,6 +274,7 @@ public class MainActivity extends AppCompatActivity {
 
                     displayResult();
                     updateCreditCounter();
+                    refreshList();
                 }
             });
 
@@ -321,71 +385,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void saveData(View view) {
-
-        String fileName = "dg.dat";
-
-
-        FileOutputStream fos = null;
-        try {
-            fos = openFileOutput(fileName, Context.MODE_PRIVATE);
-        } catch (FileNotFoundException e) {
-            //e.printStackTrace();
-        }
-        ObjectOutputStream os = null;
-        try {
-            os = new ObjectOutputStream(fos);
-            os.writeObject(dg);
-            os.close();
-            fos.close();
-        } catch (IOException e) {
-            //e.printStackTrace();
-        }
-
-
-    }
-
-    public void loadData(View view) {
-        String fileName = "dg.dat";
-
-        FileInputStream fis = null;
-        try {
-            fis = openFileInput(fileName);
-        } catch (FileNotFoundException e) {
-            //e.printStackTrace();
-        }
-
-        if (fis != null) {
-
-            ObjectInputStream is = null;
-            try {
-                is = new ObjectInputStream(fis);
-            } catch (IOException e) {
-                //e.printStackTrace();
-            }
-            try {
-                dg = (DegreeCalculator) is.readObject();
-            } catch (IOException e) {
-                //e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                //e.printStackTrace();
-            }
-            try {
-                is.close();
-            } catch (IOException e) {
-                //e.printStackTrace();
-            }
-            try {
-                fis.close();
-            } catch (IOException e) {
-                //e.printStackTrace();
-            }
-            refreshAll();
-
-
-        }
-
-
+    public DegreeCalculator getDg() {
+        return dg;
     }
 
     private class DatabaseLoadAsync extends AsyncTask<Void, Void, List<OUModule>> {
@@ -404,6 +405,9 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(List<OUModule> listofmodules) {
 
             dg = new DegreeCalculator(listofmodules);
+
+            refreshList();
+
             refreshAll();
 
 
@@ -416,6 +420,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(OUModule... modules) {
 
+            ouModuleDatabase.getOUModuleDAO().deleteAll();
+
 
             for (int i = 0; i < modules.length; i++) {
                 ouModuleDatabase.getOUModuleDAO().insert(modules[i]);
@@ -424,6 +430,4 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
     }
-
-
 }

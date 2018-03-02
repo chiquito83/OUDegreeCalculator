@@ -14,10 +14,10 @@ import java.io.Serializable;
 public class OUModule implements Serializable, Comparable<OUModule> {
 
 
-    //public int uuid;
+    @PrimaryKey(autoGenerate = true)
+    public int uuid;
 
-    @PrimaryKey
-    @NonNull
+
     private String moduleCode;  // for example M250
 
     private String moduleName;
@@ -49,7 +49,7 @@ public class OUModule implements Serializable, Comparable<OUModule> {
 
     }
 
-    private String getGradeOfPassStringRepresentation() {
+    public String getGradeOfPassStringRepresentation() {
         if (gradeOfPass == 1) {
             return "Distinction";
         } else if (gradeOfPass == 2) {
