@@ -15,7 +15,7 @@ public class OUModule implements Serializable, Comparable<OUModule> {
 
 
     @PrimaryKey(autoGenerate = true)
-    public int uuid;
+    public int id;
 
 
     private String moduleCode;  // for example M250
@@ -63,13 +63,37 @@ public class OUModule implements Serializable, Comparable<OUModule> {
 
 
     public String toString() {
-        return moduleName + ", credits: " + numberOfCredits + ", grade of pass: " + getGradeOfPassStringRepresentation() + "\n";
+        return moduleCode + ", level " + level + ", credits: " + numberOfCredits + ", grade of pass: " + getGradeOfPassStringRepresentation() + "\n";
     }
 
 
     @Override
     public int compareTo(@NonNull OUModule ouModule) {
-        return getGradeOfPass() - ouModule.getGradeOfPass();
+
+
+        if (this.getLevel() < ouModule.getLevel()) {
+            return -1;
+        } else if (this.getLevel() > ouModule.getLevel()) {
+            return 1;
+        } else {
+            return (-1) * (this.getId() - ouModule.getId());
+        }
+
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+
+        if (obj == null || obj.getClass() == OUModule.class) {
+            return false;
+        }
+
+        return (getModuleName() == ((OUModule) obj).getModuleName());
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 * getModuleName().hashCode();
     }
 
     public String getModuleName() {
@@ -111,4 +135,9 @@ public class OUModule implements Serializable, Comparable<OUModule> {
     public void setModuleCode(String moduleCode) {
         this.moduleCode = moduleCode;
     }
+
+    public int getId() {
+        return id;
+    }
+
 }

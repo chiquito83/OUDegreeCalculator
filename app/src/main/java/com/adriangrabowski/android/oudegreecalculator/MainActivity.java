@@ -1,20 +1,28 @@
 package com.adriangrabowski.android.oudegreecalculator;
 
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.DialogFragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.LinearLayout;
+import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
-
-import com.getbase.floatingactionbutton.FloatingActionButton;
+import android.widget.ProgressBar;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -27,12 +35,30 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<OUModule> moduleArrayList;
 
 
+    private FloatingActionButton fab;
+
+    private ProgressBar progressBar2;
+    private ProgressBar progressBar3;
+
+    private Button resultButton;
+
+
     private Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        progressBar2 = (ProgressBar) findViewById(R.id.progressBar2);
+        progressBar3 = (ProgressBar) findViewById(R.id.progressBar3);
+        resultButton = (Button) findViewById(R.id.button_result);
+
+
+
+
+
 
         ouModuleDatabase = OUModuleDatabase.getInstance(this);
 
@@ -41,44 +67,22 @@ public class MainActivity extends AppCompatActivity {
         context = this;
 
 
-        // buttons
+        fab = (FloatingActionButton) findViewById(R.id.fab);
 
-        FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab_add_2);
-        FloatingActionButton fab3 = (FloatingActionButton) findViewById(R.id.fab_add_3);
-
-        fab2.setTitle("LALA");
-
-
-        fab2.setOnClickListener(new View.OnClickListener() {
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                addLevel2Module(view);
-            }
-        });
-
-        fab3.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                addLevel3Module(view);
+                DialogFragment dialog = new InputModuleCodeDialog();
+                dialog.show(getSupportFragmentManager(), "InputModuleCodeDialog");
             }
         });
 
 
-        //
+        dg = new DegreeCalculator();
+
+        new DatabaseLoadAsync().execute();
 
 
-        DegreeCalculator d = (DegreeCalculator) getIntent().getSerializableExtra("dg");
-
-        if (d == null) {
-
-
-            dg = new DegreeCalculator();
-
-            new DatabaseLoadAsync().execute();
-
-        } else {
-            dg = d;
-        }
 
         refreshList();
 
@@ -100,23 +104,51 @@ public class MainActivity extends AppCompatActivity {
 
         moduleListView.setAdapter(moduleAdapter);
 
+        Collections.sort(moduleArrayList);
+
         moduleAdapter.notifyDataSetChanged();
 
     }
 
     private void refreshAll() {
-        displayListOfModules2();
-        displayListOfModules3();
+
         displayResult();
         updateCreditCounter();
+        refreshProgressBars();
+        refreshResultButton();
+
+    }
+
+    private void refreshResultButton() {
+
+        resultButton.setText(displayFinal());
+
+        if ((dg.getTotalCreditsLevel3() + dg.getTotalCreditsLevel2()) == 240) {
+            resultButton.setVisibility(View.VISIBLE);
+        } else {
+            resultButton.setVisibility(View.GONE);
+        }
+
+    }
+
+    private void refreshProgressBars() {
+
+        int progress2 = (int) ((dg.getTotalCreditsLevel2() / 120F) * 100);
+        int progress3 = (int) ((dg.getTotalCreditsLevel3() / 120F) * 100);
+
+        progressBar2.setProgress(progress2);
+        progressBar3.setProgress(progress3);
 
     }
 
     void removeModule(OUModule moduleToRemove) {
         dg.removeModule(moduleToRemove);
-        refreshList();
-        refreshAll();
-        moduleAdapter.notifyDataSetChanged();
+        OUModule[] moduleArray = new OUModule[dg.getAllModules().size()];
+
+        new DatabaseSaveAsync().execute(dg.getAllModules().toArray(moduleArray));
+        //refreshList(); //todo just checking
+        //refreshAll();
+        //moduleAdapter.notifyDataSetChanged(); //todo this one too
     }
 
     @Override
@@ -141,11 +173,7 @@ public class MainActivity extends AppCompatActivity {
         new DatabaseSaveAsync().execute(dg.getAllModules().toArray(moduleArray));
     }
 
-    public void clearAll(View view) {
-        dg.getLevel2modules().clear();
-        dg.getLevel3modules().clear();
-        refreshAll();
-    }
+
 
     private void updateCreditCounter() {
 
@@ -155,33 +183,17 @@ public class MainActivity extends AppCompatActivity {
         String messageToDisplayLevel2 = level2Credits + "/120 credits";
         String messageToDisplayLevel3 = level3Credits + "/120 credits";
 
-        TextView v2 = (TextView) findViewById(R.id.credit_counter_2_text_view);
-        TextView v3 = (TextView) findViewById(R.id.credit_counter_3_text_view);
-
-        v2.setText(messageToDisplayLevel2);
-        v3.setText(messageToDisplayLevel3);
 
     }
 
-    public void addLevel2Module(View view) {
-        Intent intent = new Intent(this, AddModule.class);
 
-        int level = 2;
-        intent.putExtra("LEVEL", level);
-        intent.putExtra("dg", dg);
+    public void displayResultInSeparateActivity(View view) {
+        Intent intent = new Intent(this, ShowDegreeCertificate.class);
+
+        intent.putExtra("BEFORE_QA", displayDegreeClassBeforeQualityAssurance());
+        intent.putExtra("QA", displayQualityAssurance());
+        intent.putExtra("AFTER_QA", displayFinal());
         startActivity(intent);
-
-
-    }
-
-    public void addLevel3Module(View view) {
-        Intent intent = new Intent(this, AddModule.class);
-
-        int level = 3;
-        intent.putExtra("LEVEL", level);
-        intent.putExtra("dg", dg);
-        startActivity(intent);
-
     }
 
     public void removeModuleOnClickHandler(View view) {
@@ -189,104 +201,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void displayListOfModules2() {
-
-
-        final LinearLayout parentLayout = (LinearLayout) findViewById(R.id.level_2_modules_list);
-        parentLayout.removeAllViews();
-
-        for (final OUModule module : dg.getLevel2modules()
-                ) {
-
-            TextView tv = new TextView(this);
-            tv.setText(module.toString());
-
-
-            LinearLayout moduleLayout = new LinearLayout(this);
-            moduleLayout.setOrientation(LinearLayout.HORIZONTAL);
-            moduleLayout.setTag(module);
-            moduleLayout.addView(tv);
-
-
-            Button removeButton = new Button(this);
-            removeButton.setText("Remove");
-            removeButton.setTag(module);
-
-
-            moduleLayout.addView(removeButton);
-
-            removeButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    dg.removeModule(module);
-
-
-                    parentLayout.removeView(parentLayout.findViewWithTag(module));
-
-                    displayResult();
-                    updateCreditCounter();
-                    refreshList();
-                }
-            });
-
-            parentLayout.addView(moduleLayout);
-
-
-        }
-
-
-
-    }
-
-    private void displayListOfModules3() {
-
-        final LinearLayout parentLayout = (LinearLayout) findViewById(R.id.level_3_modules_list);
-        parentLayout.removeAllViews();
-
-        for (final OUModule module : dg.getLevel3modules()
-                ) {
-
-            TextView tv = new TextView(this);
-            tv.setText(module.toString());
-
-
-            LinearLayout moduleLayout = new LinearLayout(this);
-            moduleLayout.setOrientation(LinearLayout.HORIZONTAL);
-            moduleLayout.setTag(module);
-            moduleLayout.addView(tv);
-            moduleLayout.setPadding(1, 1, 1, 1);
-
-
-            Button removeButton = new Button(this);
-            removeButton.setText("Remove");
-            removeButton.setTag(module);
-
-
-            moduleLayout.addView(removeButton);
-
-            removeButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    dg.removeModule(module);
-
-
-                    parentLayout.removeView(parentLayout.findViewWithTag(module));
-
-                    displayResult();
-                    updateCreditCounter();
-                    refreshList();
-                }
-            });
-
-            parentLayout.addView(moduleLayout);
-
-
-        }
-
-    }
-
     private void displayResult() {
-        TextView v = (TextView) findViewById(R.id.degree_class_text_view);
         String coh = "";
         String qa = "";
         String result;
@@ -304,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
                 displayFinal().toUpperCase();
 
 
-        v.setText(result);
+
 
     }
 
@@ -389,6 +304,60 @@ public class MainActivity extends AppCompatActivity {
         return dg;
     }
 
+    public static class InputModuleCodeDialog extends DialogFragment {
+
+
+        private Map<String, ModuleInfo> infoMap;
+
+        public void setInfoMap(Map<String, ModuleInfo> infoMap) {
+            this.infoMap = infoMap;
+        }
+
+        @NonNull
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+
+            View view = inflater.inflate(R.layout.dialog_input_module_code, null);
+
+            final EditText editTextInputModuleCode = (EditText) view.findViewById(R.id.dialog_input_text_edit);
+
+
+            builder.setView(view)
+                    .setPositiveButton("Add", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int j) {
+                            // find module by code and go to add module activity
+
+                            String moduleCode = editTextInputModuleCode.getText().toString();
+
+
+                            Intent intent = new Intent(getContext(), AddModule.class);
+                            intent.putExtra("CODE", moduleCode);
+
+                            startActivity(intent);
+
+
+                        }
+                    })
+                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            InputModuleCodeDialog.this.getDialog().cancel();
+                        }
+                    });
+
+            return builder.create();
+
+        }
+
+
+    }
+
     private class DatabaseLoadAsync extends AsyncTask<Void, Void, List<OUModule>> {
 
         @Override
@@ -405,6 +374,10 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(List<OUModule> listofmodules) {
 
             dg = new DegreeCalculator(listofmodules);
+
+            for (OUModule module : listofmodules) {
+
+            }
 
             refreshList();
 
@@ -428,6 +401,19 @@ public class MainActivity extends AppCompatActivity {
             }
 
             return null;
+        }
+
+        @Override //todo test this one
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            refreshList();
+            refreshAll();
+            moduleAdapter.notifyDataSetChanged();
+
+            Log.i("MMM", dg.toString());
+
+
         }
     }
 }

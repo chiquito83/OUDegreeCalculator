@@ -58,8 +58,11 @@ public class ModuleAdapter extends BaseAdapter {
         TextView moduleCodeTextView = (TextView) rowView.findViewById(R.id.tv_module_code);
         TextView numberOfCreditsTextView = (TextView) rowView.findViewById(R.id.tv_number_of_credits);
         TextView gradeOfPassTextView = (TextView) rowView.findViewById(R.id.tv_grade_of_pass);
+        TextView level = (TextView) rowView.findViewById(R.id.tv_module_level);
 
         ImageButton removeModuleButton = (ImageButton) rowView.findViewById(R.id.ib_delete_module);
+        removeModuleButton.setBackgroundColor(context.getResources().getColor(R.color.OUBlue));
+
         final OUModule module = (OUModule) getItem(i);
 
         removeModuleButton.setOnClickListener(new View.OnClickListener() {
@@ -69,8 +72,7 @@ public class ModuleAdapter extends BaseAdapter {
                 MainActivity mainActivity = (MainActivity) context;
                 mainActivity.removeModule(module);
 
-                //dg.removeModule(module);
-                //notifyDataSetChanged();
+
 
 
             }
@@ -80,6 +82,7 @@ public class ModuleAdapter extends BaseAdapter {
         moduleCodeTextView.setText(module.getModuleCode() + "");
         numberOfCreditsTextView.setText(module.getNumberOfCredits() + " credits");
         gradeOfPassTextView.setText(module.getGradeOfPassStringRepresentation());
+        level.setText("Level " + module.getLevel());
 
 
         return rowView;

@@ -38,6 +38,25 @@ public class DegreeCalculator implements Serializable {
         }
     }
 
+    public boolean canAddModule(OUModule module) {
+        boolean can = false;
+
+        if (module.getLevel() == 2) {
+            if (module.getNumberOfCredits() + getTotalCreditsLevel2() <= 120) {
+                can = true;
+            }
+        }
+
+        if (module.getLevel() == 3) {
+            if (module.getNumberOfCredits() + getTotalCreditsLevel3() <= 120) {
+                can = true;
+            }
+        }
+
+        return can;
+
+    }
+
 
 
 
@@ -244,5 +263,36 @@ public class DegreeCalculator implements Serializable {
         return new ArrayList<>(moduleSet);
     }
 
+    public boolean contains(OUModule module) {
+        return (level2modules.contains(module) || level3modules.contains(module));
 
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder allLevels = new StringBuilder();
+
+        allLevels.append("\nLevel 2: \n");
+
+        for (OUModule module : level2modules) {
+            allLevels.append(module.toString());
+        }
+
+        allLevels.append("Level 3: \n");
+
+        for (OUModule module : level3modules) {
+            allLevels.append(module.toString());
+        }
+
+        if (!(level3modules.isEmpty() || level2modules.isEmpty())) {
+
+            allLevels.append("\n Result before QA : " + this.calculateClassOfHonours());
+            allLevels.append("\n QA: " + this.calculateQualityAssurance());
+            allLevels.append("\n Final: " + this.calculateFinalClassOfHonours());
+
+        }
+
+
+        return allLevels.toString();
+    }
 }
