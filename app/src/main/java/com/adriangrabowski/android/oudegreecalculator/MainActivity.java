@@ -11,7 +11,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -146,9 +145,9 @@ public class MainActivity extends AppCompatActivity {
         OUModule[] moduleArray = new OUModule[dg.getAllModules().size()];
 
         new DatabaseSaveAsync().execute(dg.getAllModules().toArray(moduleArray));
-        //refreshList(); //todo just checking
-        //refreshAll();
-        //moduleAdapter.notifyDataSetChanged(); //todo this one too
+        refreshList();
+        refreshAll();
+        moduleAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -403,7 +402,7 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
 
-        @Override //todo test this one
+        @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
 
@@ -411,7 +410,6 @@ public class MainActivity extends AppCompatActivity {
             refreshAll();
             moduleAdapter.notifyDataSetChanged();
 
-            Log.i("MMM", dg.toString());
 
 
         }

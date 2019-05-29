@@ -212,7 +212,7 @@ public class AddModule extends AppCompatActivity {
             ModuleInfo moduleInfo = null;
 
             try {
-                URL url = new URL("http://www.adriangrabowski.com:4567/oumodules/v1/modules/" + strings[0]);
+                URL url = new URL("https://www.adriangrabowski.com/oumodules/v1/modules/" + strings[0]);
                 URLConnection connection = url.openConnection();
 
                 BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));

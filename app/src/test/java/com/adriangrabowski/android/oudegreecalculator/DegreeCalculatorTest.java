@@ -5,6 +5,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Created by Adrian on 06/09/2017.
@@ -37,6 +38,62 @@ public class DegreeCalculatorTest {
         dummyModule2 = new OUModule("dum2", "dummy mod 2", 60, 2, 1);
         dummyModule3 = new OUModule("dum3", "dummy mod 3", 60, 3, 3);
         dummyModule4 = new OUModule("dum4", "dummy mod 4", 60, 3, 3);
+
+
+    }
+
+    @Test
+    public void changingModulesDoesntBreakQA() {
+        dc = new DegreeCalculator();
+
+        dc.addModule(m250);
+        dc.addModule(m256);
+        dc.addModule(b201);
+        dc.addModule(b333);
+        dc.addModule(t100);
+        dc.addModule(t332);
+
+        int qaBefore = dc.calculateQualityAssurance();
+
+        dc.removeModule(b333);
+
+        new OUModule();
+        new OUModule();
+
+        try {
+            dc.addModule((OUModule) b333.clone());
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+            fail();
+        }
+
+        int qaAfter = dc.calculateQualityAssurance();
+
+        assertEquals(qaBefore, qaAfter);
+
+        ////////////
+
+        dc = new DegreeCalculator();
+
+        OUModule a = new OUModule("A", "", 60, 2, 1);
+        OUModule b = new OUModule("B", "", 60, 2, 1);
+
+        OUModule c = new OUModule("C", "", 60, 3, 1);
+
+        OUModule d = new OUModule("D", "", 60, 3, 1);
+
+        dc.addModule(a);
+        dc.addModule(b);
+        dc.addModule(c);
+        dc.addModule(d);
+
+        assertEquals(1, dc.calculateQualityAssurance());
+
+        dc.removeModule(c);
+        OUModule c1 = new OUModule("C", "", 60, 3, 4);
+        dc.addModule(c1);
+
+        assertEquals(1, dc.calculateQualityAssurance());
 
 
     }

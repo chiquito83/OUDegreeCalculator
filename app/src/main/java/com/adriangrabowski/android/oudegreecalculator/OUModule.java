@@ -11,7 +11,7 @@ import java.io.Serializable;
  */
 
 @Entity
-public class OUModule implements Serializable, Comparable<OUModule> {
+public class OUModule implements Serializable, Comparable<OUModule>, Cloneable {
 
 
     @PrimaryKey(autoGenerate = true)
@@ -76,7 +76,7 @@ public class OUModule implements Serializable, Comparable<OUModule> {
         } else if (this.getLevel() > ouModule.getLevel()) {
             return 1;
         } else {
-            return (-1) * (this.getId() - ouModule.getId());
+            return 0;
         }
 
     }
@@ -89,6 +89,12 @@ public class OUModule implements Serializable, Comparable<OUModule> {
         }
 
         return (getModuleName() == ((OUModule) obj).getModuleName());
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        OUModule clonedModule = new OUModule(this.getModuleCode(), this.getModuleName(), this.getNumberOfCredits(), this.getLevel(), this.getGradeOfPass());
+        return clonedModule;
     }
 
     @Override
